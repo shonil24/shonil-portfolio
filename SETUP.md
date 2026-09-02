@@ -1,87 +1,94 @@
-# Setup guide
+# Project Setup, Operations, and Disaster Recovery Manual
 
-## What this project is
+This document provides clean, step-by-step instructions for operating your static React/Vite portfolio application.
 
-This is a static React/Vite portfolio. It has no database, server-side API, login, paid service, or required API key. The browser renders the site and Vite bundles it into uploadable files.
+---
 
-## Important folders
+## 📁 System Architecture
 
 ```text
-src/
-  App.tsx              Layout, routes and interactive components
-  content-loader.ts    Markdown loader and frontmatter parser
-  index.css            Shared visual system and responsive rules
-content/
-  projects/*.md       Project cards and detail stories
-  blog/*.md           Published and upcoming field notes
-public/assets/
-  projects/           Project screenshots
+├── .github/workflows/   # Automated deployment scripts (static.yml)
+├── .gitignore           # Safeguard file preventing system trash from pushing
+├── content/
+│   ├── projects/        # Editable Markdown content for case studies (*.md)
+│   └── blog/            # Editable Markdown content for field notes (*.md)
+├── editable-source/     # Core local development environment (React/TypeScript)
+└── publish/             # Compiled production bundle served directly to GitHub Pages
 ```
 
-## Edit a project
+---
 
-Open `content/projects/`. Each file contains:
+## 💻 Standard Local Operations
 
-- Frontmatter for the card: title, category, image, tags, impact and date
-- `Why this mattered`
-- `Approach`
-- `Trade-offs and reasoning`
-- `Outcome`
+Always run these commands inside your **Git Bash** terminal while inside the `editable-source/` directory.
 
-The project detail page turns those four sections into clickable tabs. Copy an existing file to add a new project, give it a unique lowercase `id`, and add `featured: true` if it should appear on the home page.
-
-## Edit or publish a field note
-
-Open `content/blog/` and copy an existing Markdown file. Set:
-
-```yaml
-status: Published
-```
-
-Then write paragraphs under `## Post`. Published notes appear on `/notes` and at `/notes/<id>`. Keep future ideas as `status: Coming soon`.
-
-## Track portfolio website views
-
-GitHub Pages is free static hosting, but it does not include website analytics. This project includes an optional GoatCounter integration, which is lightweight, privacy-friendly and suitable for a static site.
-
-1. Create a free site at [GoatCounter](https://www.goatcounter.com/).
-2. Copy the site's count endpoint. It looks like `https://your-code.goatcounter.com/count`.
-3. Open `src/analytics.ts` and replace the empty `GOATCOUNTER_ENDPOINT` value with that endpoint.
-4. Build the project again and upload the new `dist/public/` contents to GitHub Pages.
-5. View page visits, referrers, devices and routes in your GoatCounter dashboard.
-
-The integration tracks the initial page load automatically and also records route changes inside the React site. It does nothing while the endpoint is empty, so development and the current build send no analytics data.
-
-The GitHub profile-view badge in `README.md` is separate: it measures visits to the GitHub profile through Komarev, not visits to the deployed website.
-
-## Run locally
-
-From the full workspace:
-
+### 1. Daily Development Workflow
+To add content or alter project styles locally on your machine:
 ```bash
-pnpm install
-PORT=5173 BASE_PATH=/ pnpm --filter @workspace/shonil-portfolio run dev
+# Start your local preview engine
+pnpm run dev
 ```
+*Open `http://localhost:5173/` in your browser. Saving code edits will refresh your screen instantly.*
 
-Open the preview URL provided by the dev server. The Replit artifact uses its managed workflow and base path automatically.
-
-## Check and build
-
+### 2. Publishing Your Changes Live
+When you finish editing your Markdown files or changing code, deploy your updates to the live site via this 3-step sequence:
 ```bash
-pnpm --filter @workspace/shonil-portfolio run typecheck
-PORT=5173 BASE_PATH=/ pnpm --filter @workspace/shonil-portfolio run build
+# Step A: Compile your raw code changes directly into the /publish directory
+pnpm run build
+
+# Step B: Stage and lock down your changes
+git add .
+git commit -m "feat: content refresh"
+
+# Step C: Upload securely to your live branch
+git push origin master
 ```
 
-The generated static files are written to `dist/public/`. Upload that folder's contents to GitHub Pages, Netlify or Vercel.
+---
 
-## Hosting guidance
+## 🔄 Machine Migration & Disaster Recovery
 
-- **GitHub Pages:** use a repository named `yourusername.github.io` for the simplest free URL.
-- **Netlify:** drag the built static folder into the deploy area or connect a GitHub repository for automatic rebuilds.
-- **Vercel:** connect the repository and deploy the static output.
+### Scenario A: Setting Up on a Brand New Laptop
+If you buy a new computer, you must initialize your developer environment from scratch:
+1. Download and install **Node.js (LTS version)** from [nodejs.org](https://nodejs.org).
+2. Install **Git** on your machine.
+3. Open a fresh terminal and clone your code down to your computer:
+   ```bash
+   git clone https://github.com
+   ```
+4. Open the cloned folder inside **VS Code** and launch a **Git Bash** terminal.
+5. Move into your workspace directory:
+   ```bash
+   cd editable-source
+   ```
+6. Grant permission for your builder scripts and download your clean engine dependencies:
+   ```bash
+   npm install -g pnpm
+   pnpm approve-builds
+   pnpm install
+   ```
+7. Start your local server (`pnpm run dev`) to confirm everything works natively.
 
-For automatic content updates, keep the editable source in GitHub and configure the host to run the build command after each commit. The public directory is `dist/public/`.
+### Scenario B: Recovering From a Local Code Crash (Wipe and Reset)
+If your local files become completely corrupted or messed up, you can wipe out your local folders and pull a pristine copy straight down from GitHub:
+```bash
+# DANGER: This discards all unsaved local work and matches your online repository perfectly
+git reset --hard origin/master
+git clean -fd
+```
 
-## Domain guidance
+---
 
-Free provider URLs are easiest. A shorter custom domain requires registering a domain and pointing its DNS records at the host. The domain cannot be changed only by editing React or CSS.
+## 🧯 Common Troubleshooting Errors
+
+### 1. Massive File Tracking Spew (Git tracking package nodes)
+* **The Problem:** Your Git status shows thousands of files tracking inside `node_modules`.
+* **The Fix:** Run `git reset` immediately. Ensure your root directory contains a file named `.gitignore` containing exactly one line: `node_modules/`.
+
+### 2. Line Ending Warnings (`LF will be replaced by CRLF`)
+* **The Problem:** Git flags warning codes regarding your line format when staging files on Windows.
+* **The Fix:** This is a safe notice, not an error. Git is automatically ensuring your text files remain readable across different operating systems. You can safely ignore it.
+
+### 3. Blank Screen on Live Website
+* **The Problem:** GitHub Actions completes with a green checkmark, but your URL shows a completely blank page.
+* **The Fix:** Ensure your repository name configuration inside `editable-source/vite.config.ts` matches your exact GitHub subfolder URL string. Always run `pnpm run build` locally before pushing to update the static mapping keys.
