@@ -3,7 +3,7 @@
 Welcome to my professional data portfolio. This project serves as a recruiter-friendly showcase for my work across data engineering, analytics, software development, and decision systems. 
 
 ### 📊 Engagement Dashboards
-* **GitHub Profile Status:** [![GitHub profile views](https://komarev.com)](https://github.com)
+* **GitHub Profile Status:** [![GitHub profile views](https://komarev.com/ghpvc/?username=shonil24&label=Profile+views&color=48c7c6&style=flat-square)](https://github.com/shonil24)
 * **Website Traffic Data:** [View My Live GoatCounter Analytics](https://goatcounter.com)
 
 ---
