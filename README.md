@@ -4,12 +4,12 @@ Welcome to my professional data portfolio. This project serves as a recruiter-fr
 
 ### 📊 Engagement Dashboards
 * **GitHub Profile Status:** [![GitHub profile views](https://komarev.com/ghpvc/?username=shonil24&label=Profile+views&color=48c7c6&style=flat-square)](https://github.com/shonil24)
-* **Website Traffic Data:** [View My Live GoatCounter Analytics](https://goatcounter.com)
+* **Website Traffic Data:** [View My Live GoatCounter Analytics](https://shonil24.goatcounter.com/count)
 
 ---
 
 ### 🌐 Live Showcase Link
-👉 **[View My Live Portfolio Website](https://github.io)**
+👉 **[View My Live Portfolio Website](https://shonil24.github.io/shonil-portfolio/)**
 
 ---
 
