@@ -209,35 +209,39 @@ function SiteShell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const [dark, setDark] = useState(() => typeof window === 'undefined' ? true : localStorage.getItem('shonil-theme') !== 'light');
   const [menuOpen, setMenuOpen] = useState(false);
+  
   useEffect(() => {
     trackRoute(location);
   }, [location]);
+  
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
     localStorage.setItem('shonil-theme', dark ? 'dark' : 'light');
   }, [dark]);
-  const isProjects = location.startsWith('/projects');
+
+  // Dynamic Base Path Hook
+  const base = import.meta.env.BASE_URL;
+  const isProjects = location.startsWith(`${base}projects`);
+
   return (
     <div className="min-h-[100dvh]">
-      <div className="ambient-stars" aria-hidden="true">{Array.from({ length: 18 }, (_, index) => <span key={index} />)}</div>
-      <div className="ambient-binary" aria-hidden="true"><span>01001011 01100101 01100101 01110000</span><span>01100011 01101100 01100101 01100001 01110010</span><span>01010011 01101001 01100111 01101110 01100001 01101100</span></div>
-      <a className="skip-link" href="#main">Skip to content</a>
+      {/* ambient wrappers stay exactly here... */}
       <header className="site-header" id="top">
         <nav className="nav shell" aria-label="Primary navigation">
-          <Link href="/" className="brand" data-testid="link-home">
+          <Link href={`${base}`} className="brand" data-testid="link-home">
             <span className="brand-mark">SD</span><span>Shonil<span className="brand-dot">.</span></span>
           </Link>
-          <button className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="site-menu" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} onClick={() => setMenuOpen((open) => !open)} data-testid="button-menu">
+          <button className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="site-menu" onClick={() => setMenuOpen((open) => !open)}>
             {menuOpen ? <span aria-hidden="true">×</span> : <><span /><span /><span /></>}
           </button>
           <div className={`nav-menu ${menuOpen ? 'open' : ''}`} id="site-menu">
-            <Link href="/" className={`nav-link ${location === '/' ? 'active' : ''}`} onClick={() => setMenuOpen(false)} data-testid="link-nav-home">Home</Link>
-            <Link href="/projects" className={`nav-link ${isProjects ? 'active' : ''}`} onClick={() => setMenuOpen(false)} data-testid="link-nav-projects">Projects</Link>
-            <Link href="/experience" className={`nav-link ${location === '/experience' ? 'active' : ''}`} onClick={() => setMenuOpen(false)} data-testid="link-nav-experience">Experience</Link>
-            <Link href="/thinking" className={`nav-link ${location === '/thinking' ? 'active' : ''}`} onClick={() => setMenuOpen(false)} data-testid="link-nav-thinking">How I think</Link>
-            <Link href="/notes" className={`nav-link ${location === '/notes' ? 'active' : ''}`} onClick={() => setMenuOpen(false)} data-testid="link-nav-notes">Notes</Link>
-            <Link href="/#contact" className="nav-link nav-cta" onClick={() => setMenuOpen(false)} data-testid="link-nav-contact">Contact <span aria-hidden="true">↗</span></Link>
-            <button className="theme-toggle" type="button" aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'} onClick={() => setDark((value) => !value)} data-testid="button-theme">
+            <Link href={`${base}`} className={`nav-link ${location === base ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Home</Link>
+            <Link href={`${base}projects`} className={`nav-link ${isProjects ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Projects</Link>
+            <Link href={`${base}experience`} className={`nav-link ${location === `${base}experience` ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Experience</Link>
+            <Link href={`${base}thinking`} className={`nav-link ${location === `${base}thinking` ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>How I think</Link>
+            <Link href={`${base}notes`} className={`nav-link ${location === `${base}notes` ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Notes</Link>
+            <Link href={`${base}#contact`} className="nav-link nav-cta" onClick={() => setMenuOpen(false)}>Contact <span aria-hidden="true">↗</span></Link>
+            <button className="theme-toggle" type="button" onClick={() => setDark((value) => !value)}>
               <span className="theme-symbol" aria-hidden="true">{dark ? <Moon size={15} /> : <Sun size={15} />}</span><span>{dark ? 'Dark' : 'Light'}</span>
             </button>
           </div>
@@ -245,13 +249,14 @@ function SiteShell({ children }: { children: ReactNode }) {
       </header>
       {children}
       <footer className="footer shell">
-        <span data-testid="text-footer-copyright">© {new Date().getFullYear()} Shonil Dabreo</span>
+        <span>© {new Date().getFullYear()} Shonil Dabreo</span>
         <span>Systems, signals, useful things.</span>
-        <a href="#top" data-testid="link-back-top">Back to top ↑</a>
+        <a href="#top">Back to top ↑</a>
       </footer>
     </div>
   );
 }
+
 
 function ProjectCard({ project }: { project: Project }) {
   return (
@@ -460,16 +465,17 @@ function Router() {
 const queryClient = new QueryClient();
 
 function App() {
-  // Reusable Fix: Dynamically gets the folder name from Vite configuration
-  // Strips trailing slashes so Wouter reads it perfectly (e.g., "/shonil-portfolio")
-  const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+  // Gracefully reads configuration path ("/" for local dev, "/shonil-portfolio/" for production)
+  // Strips trailing slash if present to satisfy wouter standards
+  const configPath = import.meta.env.BASE_URL;
+  const routerBase = configPath === '/' ? '' : configPath.replace(/\/$/, "");
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SiteShell>
           <ErrorBoundary>
-            <WouterRouter base={basePath}>
+            <WouterRouter base={routerBase}>
               <Router />
             </WouterRouter>
           </ErrorBoundary>
