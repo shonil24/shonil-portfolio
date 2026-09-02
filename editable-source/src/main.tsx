@@ -8,12 +8,11 @@ import "./index.css";
 
 initAnalytics();
 
-createRoot(document.getElementById("root")!, {
-  // Keeps caught errors off reportError(), which would raise the dev overlay.
-  onCaughtError: (error, errorInfo) => {
-    console.error(error, errorInfo.componentStack);
-  },
-}).render(
+// Fixed: Removed the incompatible React 19 error options for stable React 18 compatibility
+const container = document.getElementById("root")!;
+const root = createRoot(container);
+
+root.render(
   <ErrorBoundary>
     <App />
   </ErrorBoundary>,

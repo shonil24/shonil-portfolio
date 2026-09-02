@@ -7,7 +7,7 @@
  * The empty value is intentional: the portfolio never sends analytics data
  * until the owner chooses a GoatCounter endpoint.
  */
-const GOATCOUNTER_ENDPOINT = "";
+const GOATCOUNTER_ENDPOINT = "https://shonil24.goatcounter.com/count";
 
 type GoatCounter = {
   count: (options: { path: string; title?: string; referrer?: string }) => void;
