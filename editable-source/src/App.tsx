@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { ArrowLeft, ArrowUpRight, BarChart3, Check, Database, Download, GitBranch, Moon, Search, ShieldCheck, Sun } from 'lucide-react';
-import { Link, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
+import { Link, Route, Switch, Router as WouterRouter } from 'wouter';
+import { useHashLocation } from 'wouter/use-hash-location';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
@@ -206,7 +207,7 @@ function Reveal({ children, className = '' }: { children: ReactNode; className?:
 }
 
 function SiteShell({ children }: { children: ReactNode }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useHashLocation(); // Tracks routing state via the hash parameter
   const [dark, setDark] = useState(() => typeof window === 'undefined' ? true : localStorage.getItem('shonil-theme') !== 'light');
   const [menuOpen, setMenuOpen] = useState(false);
   
@@ -219,28 +220,25 @@ function SiteShell({ children }: { children: ReactNode }) {
     localStorage.setItem('shonil-theme', dark ? 'dark' : 'light');
   }, [dark]);
 
-  // Dynamic Base Path Hook
-  const base = import.meta.env.BASE_URL;
-  const isProjects = location.startsWith(`${base}projects`);
+  const isProjects = location.startsWith('/projects');
 
   return (
     <div className="min-h-[100dvh]">
-      {/* ambient wrappers stay exactly here... */}
       <header className="site-header" id="top">
         <nav className="nav shell" aria-label="Primary navigation">
-          <Link href={`${base}`} className="brand" data-testid="link-home">
+          <Link href="/" className="brand">
             <span className="brand-mark">SD</span><span>Shonil<span className="brand-dot">.</span></span>
           </Link>
           <button className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="site-menu" onClick={() => setMenuOpen((open) => !open)}>
             {menuOpen ? <span aria-hidden="true">×</span> : <><span /><span /><span /></>}
           </button>
           <div className={`nav-menu ${menuOpen ? 'open' : ''}`} id="site-menu">
-            <Link href={`${base}`} className={`nav-link ${location === base ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Home</Link>
-            <Link href={`${base}projects`} className={`nav-link ${isProjects ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Projects</Link>
-            <Link href={`${base}experience`} className={`nav-link ${location === `${base}experience` ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Experience</Link>
-            <Link href={`${base}thinking`} className={`nav-link ${location === `${base}thinking` ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>How I think</Link>
-            <Link href={`${base}notes`} className={`nav-link ${location === `${base}notes` ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Notes</Link>
-            <Link href={`${base}#contact`} className="nav-link nav-cta" onClick={() => setMenuOpen(false)}>Contact <span aria-hidden="true">↗</span></Link>
+            <Link href="/" className={`nav-link ${location === '/' ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Home</Link>
+            <Link href="/projects" className={`nav-link ${isProjects ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Projects</Link>
+            <Link href="/experience" className={`nav-link ${location === '/experience' ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Experience</Link>
+            <Link href="/thinking" className={`nav-link ${location === '/thinking' ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>How I think</Link>
+            <Link href="/notes" className={`nav-link ${location === '/notes' ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Notes</Link>
+            <a href="#contact" className="nav-link nav-cta" onClick={() => setMenuOpen(false)}>Contact <span aria-hidden="true">↗</span></a>
             <button className="theme-toggle" type="button" onClick={() => setDark((value) => !value)}>
               <span className="theme-symbol" aria-hidden="true">{dark ? <Moon size={15} /> : <Sun size={15} />}</span><span>{dark ? 'Dark' : 'Light'}</span>
             </button>
@@ -470,17 +468,13 @@ function Router() {
 const queryClient = new QueryClient();
 
 function App() {
-  // Gracefully reads configuration path ("/" for local dev, "/shonil-portfolio/" for production)
-  // Strips trailing slash if present to satisfy wouter standards
-  const configPath = import.meta.env.BASE_URL;
-  const routerBase = configPath === '/' ? '' : configPath.replace(/\/$/, "");
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SiteShell>
           <ErrorBoundary>
-            <WouterRouter base={routerBase}>
+            {/* Safe & Reusable baseline: Bypasses folder pathing entirely using hash navigation */}
+            <WouterRouter hook={useHashLocation}>
               <Router />
             </WouterRouter>
           </ErrorBoundary>
@@ -490,4 +484,5 @@ function App() {
     </QueryClientProvider>
   );
 }
+
 export default App;
