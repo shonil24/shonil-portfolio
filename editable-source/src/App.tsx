@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { ArrowLeft, ArrowUpRight, BarChart3, Check, Database, Download, GitBranch, Moon, Search, ShieldCheck, Sun } from 'lucide-react';
-import { Link, Route, Switch, Router as WouterRouter } from 'wouter';
+import { Route, Switch, Router as WouterRouter } from 'wouter';
 import { useHashLocation } from 'wouter/use-hash-location';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -9,6 +9,10 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import { trackRoute } from './analytics';
 import { blogPostsFromMarkdown, projectsFromMarkdown } from './content-loader';
+
+// ============================================================================
+// TYPE DEFINITIONS & ENTITY SCHEMA DECLARATIONS
+// ============================================================================
 
 type Project = {
   id: string;
@@ -36,6 +40,10 @@ type BlogPost = {
   excerpt: string;
   body: string[];
 };
+
+// ============================================================================
+// SYSTEM DATA LAYERS & LEGACY FALLBACK ENGINES
+// ============================================================================
 
 const legacyProjects: Project[] = [
   { id: 'atlikon', title: 'End-to-End FMCG Data Engineering', type: 'Data engineering', categories: ['data'], image: 'assets/projects/atlikon.png', tags: ['Databricks', 'PySpark', 'AWS S3', 'Delta Lake'], summary: 'A reliable lakehouse for two FMCG companies with fragmented schemas, historical backfill and daily incremental loads.', impact: '50K+ records unified', date: '2026', featured: true, why: 'Atlikon and Sportbar were reporting from different schemas and spreadsheet workflows after an acquisition. The goal was one trustworthy analytics layer without losing historical context.', approach: 'Ingest raw CSV data from S3 into a Databricks medallion architecture, apply validation and deduplication, then use Delta Lake merge logic for incremental updates. A star schema makes the final layer usable for BI.', tradeoffs: 'The design favours clear, testable layers over one clever transformation. That adds a little structure up front, but makes lineage, backfills and future source changes easier to reason about.', result: 'The pipeline creates a single source of truth ready for leadership dashboards and self-serve analysis.' },
@@ -207,7 +215,7 @@ function Reveal({ children, className = '' }: { children: ReactNode; className?:
 }
 
 function SiteShell({ children }: { children: ReactNode }) {
-  const [location, setLocation] = useHashLocation(); // Tracks routing state via the hash parameter
+  const [location] = useHashLocation(); 
   const [dark, setDark] = useState(() => typeof window === 'undefined' ? true : localStorage.getItem('shonil-theme') !== 'light');
   const [menuOpen, setMenuOpen] = useState(false);
   
@@ -224,22 +232,26 @@ function SiteShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-[100dvh]">
+      <div className="ambient-stars" aria-hidden="true">{Array.from({ length: 18 }, (_, index) => <span key={index} />)}</div>
+      <div className="ambient-binary" aria-hidden="true"><span>01001011 01100101 01100101 01110000</span><span>01100011 01101100 01100101 01100001 01110010</span><span>01010011 01101001 01100111 01101110 01100001 01101100</span></div>
+      <a className="skip-link" href="#main">Skip to content</a>
       <header className="site-header" id="top">
         <nav className="nav shell" aria-label="Primary navigation">
-          <Link href="/" className="brand">
+          {/* Fixed: Standardized to explicit hash anchors for robust navigation matching */}
+          <a href="#/" className="brand" data-testid="link-home">
             <span className="brand-mark">SD</span><span>Shonil<span className="brand-dot">.</span></span>
-          </Link>
-          <button className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="site-menu" onClick={() => setMenuOpen((open) => !open)}>
+          </a>
+          <button className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="site-menu" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} onClick={() => setMenuOpen((open) => !open)} data-testid="button-menu">
             {menuOpen ? <span aria-hidden="true">×</span> : <><span /><span /><span /></>}
           </button>
           <div className={`nav-menu ${menuOpen ? 'open' : ''}`} id="site-menu">
-            <Link href="/" className={`nav-link ${location === '/' ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Home</Link>
-            <Link href="/projects" className={`nav-link ${isProjects ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Projects</Link>
-            <Link href="/experience" className={`nav-link ${location === '/experience' ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Experience</Link>
-            <Link href="/thinking" className={`nav-link ${location === '/thinking' ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>How I think</Link>
-            <Link href="/notes" className={`nav-link ${location === '/notes' ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Notes</Link>
-            <a href="#contact" className="nav-link nav-cta" onClick={() => setMenuOpen(false)}>Contact <span aria-hidden="true">↗</span></a>
-            <button className="theme-toggle" type="button" onClick={() => setDark((value) => !value)}>
+            <a href="#/" className={`nav-link ${location === '/' ? 'active' : ''}`} onClick={() => setMenuOpen(false)} data-testid="link-nav-home">Home</a>
+            <a href="#/projects" className={`nav-link ${isProjects ? 'active' : ''}`} onClick={() => setMenuOpen(false)} data-testid="link-nav-projects">Projects</a>
+            <a href="#/experience" className={`nav-link ${location === '/experience' ? 'active' : ''}`} onClick={() => setMenuOpen(false)} data-testid="link-nav-experience">Experience</a>
+            <a href="#/thinking" className={`nav-link ${location === '/thinking' ? 'active' : ''}`} onClick={() => setMenuOpen(false)} data-testid="link-nav-thinking">How I think</a>
+            <a href="#/notes" className={`nav-link ${location === '/notes' ? 'active' : ''}`} onClick={() => setMenuOpen(false)} data-testid="link-nav-notes">Notes</a>
+            <a href="#/#contact" className="nav-link nav-cta" onClick={() => setMenuOpen(false)} data-testid="link-nav-contact">Contact <span aria-hidden="true">↗</span></a>
+            <button className="theme-toggle" type="button" aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'} onClick={() => setDark((value) => !value)} data-testid="button-theme">
               <span className="theme-symbol" aria-hidden="true">{dark ? <Moon size={15} /> : <Sun size={15} />}</span><span>{dark ? 'Dark' : 'Light'}</span>
             </button>
           </div>
@@ -247,9 +259,9 @@ function SiteShell({ children }: { children: ReactNode }) {
       </header>
       {children}
       <footer className="footer shell">
-        <span>© {new Date().getFullYear()} Shonil Dabreo</span>
+        <span data-testid="text-footer-copyright">© {new Date().getFullYear()} Shonil Dabreo</span>
         <span>Systems, signals, useful things.</span>
-        <a href="#top">Back to top ↑</a>
+        <a href="#top" data-testid="link-back-top">Back to top ↑</a>
       </footer>
     </div>
   );
@@ -258,7 +270,8 @@ function SiteShell({ children }: { children: ReactNode }) {
 
 function ProjectCard({ project }: { project: Project }) {
   return (
-    <Link href={`/projects/${project.id}`} className="project-card" data-testid={`card-project-${project.id}`}>
+    // Fixed: Swapped to an explicit hash route layout to unlock card clicks smoothly
+    <a href={`#/projects/${project.id}`} className="project-card" data-testid={`card-project-${project.id}`}>
       <ProjectMedia project={project} />
       <div className="project-body">
         <span className="project-type">{project.date} · {project.tags.slice(0, 2).join(' · ')}</span>
@@ -266,7 +279,7 @@ function ProjectCard({ project }: { project: Project }) {
         <p>{project.summary}</p>
         <div className="card-footer"><span className="impact">{project.impact}</span><span className="card-arrow" aria-hidden="true">↗</span></div>
       </div>
-    </Link>
+    </a>
   );
 }
 
@@ -359,7 +372,7 @@ function Home() {
           <h1>I turn raw data into<br /><em>trusted decisions.</em></h1>
           <p className="hero-lede">Dependable pipelines, governed analytics, and clear decision tools for teams that need to move with confidence.</p>
           <div className="hero-actions">
-            <Link className="button button-primary" href="/projects" data-testid="link-hero-projects">Explore the work <ArrowUpRight size={15} /></Link>
+            <a className="button button-primary" href="#/projects" data-testid="link-hero-projects">Explore the work <ArrowUpRight size={15} /></a>
             <a className="button button-quiet" href="/assets/Shonil-Dabreo-Resume.pdf" target="_blank" rel="noreferrer" data-testid="link-hero-resume">View resume <Download size={14} /></a>
           </div>
           <div className="hero-proof"><span>Currently building at <strong>SGFleet</strong></span><span className="proof-separator">·</span><span>Open to relocation</span></div>
@@ -372,7 +385,7 @@ function Home() {
        <Achievements />
        <TechStack />
       <section className="section-pad shell" id="work">
-        <Reveal><div className="section-heading"><div><p className="eyebrow">Selected work</p><h2>Proof, not just promises.</h2></div><Link className="text-link" href="/projects" data-testid="link-view-all-projects">View all projects <ArrowUpRight size={14} /></Link></div></Reveal>
+        <Reveal><div className="section-heading"><div><p className="eyebrow">Selected work</p><h2>Proof, not just promises.</h2></div><a className="text-link" href="#/projects" data-testid="link-view-all-projects">View all projects <ArrowUpRight size={14} /></a></div></Reveal>
         <div className="featured-grid">{projects.filter((project) => project.featured).map((project, index) => <Reveal key={project.id} className={`reveal-delay-${Math.min(index, 2)}`}><ProjectCard project={project} /></Reveal>)}</div>
       </section>
       <section className="section-pad shell" id="thinking">
@@ -389,7 +402,7 @@ function Home() {
       <section className="section-pad notes-section" id="notes">
         <Reveal><div className="section-heading"><div><p className="eyebrow">Field notes</p><h2>Things I’m thinking through.</h2></div><span className="coming-soon">Writing desk · 2026</span></div></Reveal>
         <div className="notes-grid">
-          <Reveal><article className="note-card note-feature"><span className="note-number">01</span><p className="note-type">Data engineering · In progress</p><h3>Why “single source of truth” is a people problem first.</h3><p>Consolidating systems is only half the work. The other half is making definitions, ownership, and confidence visible to the people who use the data.</p><Link href="/notes" className="text-link" data-testid="link-note-feature">Read the field notes <ArrowUpRight size={14} /></Link></article></Reveal>
+          <Reveal><article className="note-card note-feature"><span className="note-number">01</span><p className="note-type">Data engineering · In progress</p><h3>Why "single source of truth" is a people problem first.</h3><p>Consolidating systems is only half the work. The other half is making definitions, ownership, and confidence visible to the people who use the data.</p><a href="#/notes" className="text-link" data-testid="link-note-feature">Read the field notes <ArrowUpRight size={14} /></a></article></Reveal>
           <Reveal className="reveal-delay-1"><article className="note-card"><span className="note-number">02</span><p className="note-type">Analytics · Coming soon</p><h3>Dashboards that answer the next question.</h3><p>A good KPI view should feel like a conversation, not a wall of charts.</p><span className="note-read">Drafting now</span></article></Reveal>
           <Reveal className="reveal-delay-2"><article className="note-card"><span className="note-number">03</span><p className="note-type">Career · Coming soon</p><h3>What I wish I knew before my first data platform migration.</h3><p>Notes on ambiguity, governance, and learning to design for the people downstream.</p><span className="note-read">Drafting now</span></article></Reveal>
         </div>
@@ -421,7 +434,7 @@ function ProjectDetail({ id }: { id?: string }) {
   ] as const;
   const [activeSection, setActiveSection] = useState<(typeof detailSections)[number][0]>('why');
   usePageMeta(`${project.title} — Shonil Dabreo`, `${project.summary} Read the problem, approach, trade-offs and outcome.`);
-  return <main id="main" className="project-detail shell section-pad"><Link className="detail-back" href="/projects" data-testid="link-back-projects"><ArrowLeft size={14} /> Back to project archive</Link>
+  return <main id="main" className="project-detail shell section-pad"><a className="detail-back" href="#/projects" data-testid="link-back-projects"><ArrowLeft size={14} /> Back to project archive</a>
      <header className="detail-header"><div><p className="eyebrow">{project.type} · {project.date}</p><h1>{project.title}</h1><p className="detail-deck">{project.summary}</p><div className="detail-meta">{project.tags.map((tag) => <span className="meta-pill" key={tag}>{tag}</span>)}</div></div><div className="detail-aside"><span className="aside-label">Impact snapshot</span><div className="aside-stat"><strong><AnimatedNumber value={project.impact.split(' ')[0]} /></strong><span>{project.impact.split(' ').slice(1).join(' ')}</span></div></div></header>
     <Reveal><div className="detail-hero-image"><ProjectMedia project={project} detail /></div></Reveal>
       <div className="detail-layout"><div className="detail-content"><h2>From the problem<br />to the useful thing.</h2><div className="detail-explorer" id="project-story"><nav className="detail-tabs" role="tablist" aria-label="Project story files"><div className="detail-folder">📁 {project.id}/</div>{detailSections.map(([key, file, title]) => <button className={`detail-tab ${activeSection === key ? 'active' : ''}`} key={key} type="button" role="tab" aria-selected={activeSection === key} onClick={() => setActiveSection(key)}><span className="detail-file-index">{file.slice(0, 2)}</span><span className="detail-file-name">{file}</span><span className="detail-tab-caption">{title}</span></button>)}</nav><div className="detail-story-panel">{detailSections.map(([key, file, title, copy]) => activeSection === key ? <article className="detail-block detail-block-active" key={key} role="tabpanel"><span className="detail-section-kicker">{file}</span><h3>{title}</h3><p>{copy}</p></article> : null)}</div></div></div><aside className="detail-aside"><span className="aside-label">Tools used</span>{project.tags.map((tag) => <div className="aside-stat" key={tag}><strong>{tag}</strong><span>in the working stack</span></div>)}</aside></div>
@@ -441,13 +454,13 @@ function Notes() {
   usePageMeta('Field notes — Shonil Dabreo', 'Working notes on data engineering, analytics, governance and building systems for people.');
   const [copied, setCopied] = useState(false);
   const copyLink = async () => { await navigator.clipboard?.writeText(window.location.href); setCopied(true); window.setTimeout(() => setCopied(false), 1800); };
-  return <main id="main"><section className="page-intro shell section-pad route-copy"><p className="eyebrow">Field notes · 2026</p><h1>Things I’m<br /><em>thinking through.</em></h1><p className="lede">A writing desk for the questions that sit between data, systems and the people who have to use them.</p></section><section className="shell notes-list section-pad">{blogPosts.map((post, index) => <Reveal key={post.id} className={`reveal-delay-${Math.min(index, 2)}`}><article className={`note-card ${index === 0 ? 'note-feature note-long' : ''}`}><span className="note-number">0{index + 1}</span><p className="note-type">{post.category} · {post.status}{post.status === 'Published' ? ` · ${post.date}` : ''}</p><h3>{post.title}</h3><p>{post.excerpt}</p>{post.status === 'Published' ? <div className="note-actions"><Link href={`/notes/${post.id}`} className="text-link" data-testid={`link-note-${post.id}`}>Read the post <ArrowUpRight size={14} /></Link><button className="note-share" onClick={copyLink} data-testid="button-copy-notes">{copied ? <><Check size={14} /> Link copied</> : <>Share <ArrowUpRight size={14} /></>}</button></div> : <span className="note-read">Drafting now</span>}</article></Reveal>)}</section><ContactBanner /></main>;
+  return <main id="main"><section className="page-intro shell section-pad route-copy"><p className="eyebrow">Field notes · 2026</p><h1>Things I'm<br /><em>thinking through.</em></h1><p className="lede">A writing desk for the questions that sit between data, systems and the people who have to use them.</p></section><section className="shell notes-list section-pad">{blogPosts.map((post, index) => <Reveal key={post.id} className={`reveal-delay-${Math.min(index, 2)}`}><article className={`note-card ${index === 0 ? 'note-feature note-long' : ''}`}><span className="note-number">0{index + 1}</span><p className="note-type">{post.category} · {post.status}{post.status === 'Published' ? ` · ${post.date}` : ''}</p><h3>{post.title}</h3><p>{post.excerpt}</p>{post.status === 'Published' ? <div className="note-actions"><a href={`#/notes/${post.id}`} className="text-link" data-testid={`link-note-${post.id}`}>Read the post <ArrowUpRight size={14} /></a><button className="note-share" onClick={copyLink} data-testid="button-copy-notes">{copied ? <><Check size={14} /> Link copied</> : <>Share <ArrowUpRight size={14} /></>}</button></div> : <span className="note-read">Drafting now</span>}</article></Reveal>)}</section><ContactBanner /></main>;
 }
 
 function BlogPost({ id }: { id?: string }) {
   const post = blogPosts.find((item) => item.id === id) ?? blogPosts[0];
   usePageMeta(`${post.title} — Shonil Dabreo`, post.excerpt);
-  return <main id="main" className="blog-post shell section-pad"><Link className="detail-back" href="/notes" data-testid="link-back-notes"><ArrowLeft size={14} /> Back to field notes</Link><header className="blog-post-header"><p className="eyebrow">{post.category} · {post.date}</p><h1>{post.title}</h1><p className="blog-post-deck">{post.excerpt}</p></header><article className="blog-post-body">{post.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</article><div className="blog-post-footer"><Link className="text-link" href="/notes">More field notes <ArrowUpRight size={14} /></Link><a className="text-link" href="https://www.linkedin.com/in/shonil24/" target="_blank" rel="noreferrer">Follow along on LinkedIn <ArrowUpRight size={14} /></a></div></main>;
+  return <main id="main" className="blog-post shell section-pad"><a className="detail-back" href="#/notes" data-testid="link-back-notes"><ArrowLeft size={14} /> Back to field notes</a><header className="blog-post-header"><p className="eyebrow">{post.category} · {post.date}</p><h1>{post.title}</h1><p className="blog-post-deck">{post.excerpt}</p></header><article className="blog-post-body">{post.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</article><div className="blog-post-footer"><a className="text-link" href="#/notes">More field notes <ArrowUpRight size={14} /></a><a className="text-link" href="https://www.linkedin.com/in/shonil24/" target="_blank" rel="noreferrer">Follow along on LinkedIn <ArrowUpRight size={14} /></a></div></main>;
 }
 
 function Router() {
