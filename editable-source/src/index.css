@@ -327,7 +327,7 @@ h3 { font-weight: 600; }
 }
 
 /* A quiet binary texture adds motion without competing with the content. */
-.ambient-binary { position: fixed; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; opacity: .1; color: hsl(var(--primary)); font: 10px/1.8 var(--app-font-mono); }
+.ambient-binary { position: fixed; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; opacity: .18; color: hsl(var(--primary)); font: 10px/1.8 var(--app-font-mono); }
 .ambient-binary span { position: absolute; white-space: nowrap; writing-mode: vertical-rl; animation: binary-drift 22s linear infinite; }
 .ambient-binary span:nth-child(1) { left: 12%; top: -12%; animation-delay: -5s; }
 .ambient-binary span:nth-child(2) { left: 67%; top: 8%; animation-delay: -14s; }
