@@ -13,6 +13,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  // FORCE VITE TO GRAB INDEPENDENT PUBLIC ASSETS AT BUILD TIME:
+  publicDir: path.resolve(import.meta.dirname, 'public'),
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, 'src'),
@@ -22,7 +24,6 @@ export default defineConfig({
   },
   root: path.resolve(import.meta.dirname),
   build: {
-    // This outputs the fully bundled files straight into your root publish folder
     outDir: path.resolve(import.meta.dirname, '../publish'),
     emptyOutDir: true,
   },
